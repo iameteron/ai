@@ -11,7 +11,7 @@ def solution_visualization(
     x_star: np.array = None,
     xlim: tuple = (-5, 5),
     ylim: tuple = (-5, 5),
-    step: float = 0.01,
+    step: float = 0.1,
     flat: bool = True,
     labels: list = [],
     cmap: str = "viridis",
@@ -58,7 +58,7 @@ def solution_visualization(
             lines = {}
             for x_seq, label in zip(x_seqs, labels):
                 if x_seq is not None:
-                    lines[label] = ax.plot(x_seq[0, 0], x_seq[0, 1], label=label)
+                    lines[label] = ax.plot(x_seq[0, 0], x_seq[0, 1], label=label)[0]
                     ax.scatter(x_seq[0, 0], x_seq[0, 1], c="black")
                     ax.scatter(x_seq[-1, 0], x_seq[-1, 1], c="r")
 
