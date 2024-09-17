@@ -48,16 +48,16 @@ def solution_visualization(
 
         if animate:
             lines = {}
+            points = {}
             if len(x_seqs) > 0:
                 for x_seq, label in zip(x_seqs, labels):
                     lines[label] = ax.plot(x_seq[0, 0], x_seq[0, 1], label=label)[0]
-                    ax.scatter(x_seq[0, 0], x_seq[0, 1], c="black", s=10)
+                    points[label] = ax.scatter(x_seq[0, 0], x_seq[0, 1], c="r", s=20)
 
             def update(i):
                 for x_seq, label in zip(x_seqs, labels):
                     lines[label].set_data(x_seq[:i, 0], x_seq[:i, 1])
-                    if i == x_seq[:, 0].size:
-                        ax.scatter(x_seq[-1, 0], x_seq[-1, 1], c="r", s=10)
+                    points[label].set_offsets((x_seq[i, 0], x_seq[i, 1]))
 
 
             ani = animation.FuncAnimation(
@@ -124,5 +124,5 @@ def compare_methods(
         cmap=cmap,
         labels=methods,
         animate=animate,
-        path=f"./gifs/{function.__name__}.gif",
+        path=f"{function.__name__}.gif",
     )
