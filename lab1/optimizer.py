@@ -1,4 +1,5 @@
 import numpy as np
+from tqdm import tqdm
 
 
 class GradientOptimizer:
@@ -9,9 +10,9 @@ class GradientOptimizer:
         grad_function: callable = None,
         method: str = "GD",
         grad_calculation: str = "",
-        stop_criteria: str = "",
+        stop_criteria: str = "point_norm",
         max_iteration: int = 500,
-        alpha: float = 1e-4,
+        alpha: float = 1e-2,
         beta_1: float = 0.9,
         beta_2: float = 0.99,
         eps: float = 1e-8,
@@ -29,6 +30,9 @@ class GradientOptimizer:
         self.beta_2 = beta_2
         self.eps = eps
         self.eps_stop = eps_stop
+
+        self.momentum_methods = ["Momentum", "NesterovMomentum", "Adam"]
+        self.adaptive_methods = ["RMSProp", "Adam"]
 
     def step(self):
         grad = self.grad_function(self.point_seq[-1])
@@ -80,9 +84,10 @@ class GradientOptimizer:
                 self.curr_adaptation = (
                     self.beta_2 * self.curr_adaptation + (1 - self.beta_2) * grad**2
                 )
-                self.next_point = (self.point_seq[-1] -
-                    self.alpha * self.curr_momentum / np.sqrt(
-                    self.curr_adaptation + self.eps)
+                self.next_point = self.point_seq[
+                    -1
+                ] - self.alpha * self.curr_momentum / np.sqrt(
+                    self.curr_adaptation + self.eps
                 )
             else:
                 self.curr_adaptation = 1
@@ -123,3 +128,38 @@ class GradientOptimizer:
                 break
 
         return np.array(self.point_seq), np.array(self.value_seq)
+
+    def hyperparameter_optimization(
+        self,
+        alphas: tuple = np.geomspace(1e-1, 1e-5, 5),
+        betas_1: tuple = np.linspace(0, 1, 11),
+        betas_2: tuple = np.linspace(0, 1, 11),
+    ):
+        min_value = +np.inf
+
+        if self.method not in self.momentum_methods:
+            betas_1 = np.array([self.beta_1])
+
+        if self.method not in self.adaptive_methods:
+            betas_2 = np.array([self.beta_2])
+
+        best_alpha = alphas[0]
+        best_beta_1 = betas_1[0]
+        best_beta_2 = betas_2[0]
+
+        for alpha in tqdm(alphas):
+            for beta_1 in betas_1:
+                for beta_2 in betas_2:
+                    self.alpha = alpha
+                    self.beta_1 = beta_1
+                    self.beta_2 = beta_2
+                    _, y_seq = self.find_minimum()
+                    if y_seq[-1] < min_value:
+                        best_alpha = alpha
+                        best_beta_1 = beta_1
+                        best_beta_2 = beta_2
+                        min_value = y_seq[-1]
+
+        self.alpha = best_alpha
+        self.beta_1 = best_beta_1
+        self.beta_2 = best_beta_2

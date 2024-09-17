@@ -1,7 +1,7 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.colors import AsinhNorm
 import matplotlib.animation as animation
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.colors import AsinhNorm
 from optimizer import GradientOptimizer
 
 
@@ -16,6 +16,7 @@ def solution_visualization(
     labels: list = [],
     cmap: str = "viridis",
     animate: bool = True,
+    path: str = "./gifs/test.gif",
 ):
     x1 = np.arange(xlim[0], xlim[1], step)
     x2 = np.arange(ylim[0], ylim[1], step)
@@ -27,14 +28,6 @@ def solution_visualization(
         fig, ax = plt.subplots()
         fig.set_figheight(10)
         fig.set_figwidth(10)
-
-        im = ax.imshow(
-            y,
-            extent=[xlim[0], xlim[1], ylim[0], ylim[1]],
-            origin="lower",
-            cmap=cmap,
-            aspect="equal",
-        )
 
         im = ax.imshow(
             y,
@@ -54,30 +47,32 @@ def solution_visualization(
             ax.scatter(x_star[0], x_star[1], marker=(5, 1), c="y")
 
         if animate:
-
             lines = {}
-            for x_seq, label in zip(x_seqs, labels):
-                if x_seq is not None:
+            if len(x_seqs) > 0:
+                for x_seq, label in zip(x_seqs, labels):
                     lines[label] = ax.plot(x_seq[0, 0], x_seq[0, 1], label=label)[0]
-                    ax.scatter(x_seq[0, 0], x_seq[0, 1], c="black")
-                    ax.scatter(x_seq[-1, 0], x_seq[-1, 1], c="r")
+                    ax.scatter(x_seq[0, 0], x_seq[0, 1], c="black", s=10)
 
             def update(i):
                 for x_seq, label in zip(x_seqs, labels):
-                    if x_seq is not None:
-                        lines[label].set_data(x_seq[i, 0], x_seq[i, 1])
+                    lines[label].set_data(x_seq[:i, 0], x_seq[:i, 1])
+                    if i == x_seq[:, 0].size:
+                        ax.scatter(x_seq[-1, 0], x_seq[-1, 1], c="r", s=10)
 
-            ani = animation.FuncAnimation(fig=fig, func=update, frames=500, interval=30)
+
+            ani = animation.FuncAnimation(
+                fig=fig, func=update, frames=x_seqs[0][:, 0].size, interval=90
+            )
+
             plt.legend()
-            plt.show()
-            ani.save('./animtaion.gif')
+            ani.save(path)
 
         else:
-            for x_seq, label in zip(x_seqs, labels):
-                if x_seq is not None:
+            if len(x_seqs) > 0:
+                for x_seq, label in zip(x_seqs, labels):
                     ax.plot(x_seq[:, 0], x_seq[:, 1], label=label)
-                    ax.scatter(x_seq[0, 0], x_seq[0, 1], c="black")
-                    ax.scatter(x_seq[-1, 0], x_seq[-1, 1], c="r")
+                    ax.scatter(x_seq[0, 0], x_seq[0, 1], c="black", s=10)
+                    ax.scatter(x_seq[-1, 0], x_seq[-1, 1], c="r", s=10)
 
             plt.legend()
 
@@ -92,20 +87,6 @@ def solution_visualization(
         fig.colorbar(surf, ax=ax, shrink=0.5, aspect=5)
         plt.show()
 
-    
-def hyperparameter_optimization(optimizer: GradientOptimizer) -> None:
-    alphas = np.linspace(1e-2, 1e-3, 100)
-    min_value = +np.inf
-
-    for alpha in alphas:
-        optimizer.alpha = alpha
-        x_seq, y_seq = optimizer.find_minimum()
-        if y_seq[-1] < min_value:
-            best_alpha = alpha
-            min_value = y_seq[-1]
-
-    optimizer.alpha = best_alpha
-    
 
 def compare_methods(
     function: callable,
@@ -114,7 +95,8 @@ def compare_methods(
     ylim: tuple,
     x_star: np.array = None,
     grad_function: callable = None,
-    cmap: str = "viridis",
+    cmap: str = "magma_r",
+    animate: bool = False,
 ) -> None:
     methods = ["GD", "Momentum", "NesterovMomentum", "RMSProp", "Adam"]
 
@@ -123,16 +105,24 @@ def compare_methods(
 
     for method in methods:
         optimizer = GradientOptimizer(function, initial_point, grad_function, method)
-        hyperparameter_optimization(optimizer)
+        optimizer.hyperparameter_optimization()
 
         x_seq, y_seq = optimizer.find_minimum()
         x_seqs.append(x_seq)
         y_seqs.append(y_seq)
 
         print(
-            f"{method}: steps = {x_seq.shape[0] - 1}, value = {y_seq[-1]}, lr = {optimizer.alpha}"
+            f"{method}: steps = {x_seq.shape[0] - 1}, value = {y_seq[-1]}, lr = {optimizer.alpha}, beta_1 = {optimizer.beta_1}, beta_2 = {optimizer.beta_2}"
         )
 
     solution_visualization(
-        function, x_seqs, x_star, xlim, ylim, cmap=cmap, labels=methods
+        function,
+        x_seqs,
+        x_star,
+        xlim,
+        ylim,
+        cmap=cmap,
+        labels=methods,
+        animate=animate,
+        path=f"./gifs/{function.__name__}.gif",
     )
