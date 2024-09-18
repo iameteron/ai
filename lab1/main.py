@@ -13,7 +13,7 @@ if __name__ == "__main__":
         np.array([-0.5, 2.0]),
         np.array([-4, 3]),
         np.array([-4, 3]),
-        np.array([-7, -8]),
+        np.array([5, -8]),
         np.array([-4, 3]),
     ]
 
@@ -72,4 +72,3 @@ if __name__ == "__main__":
             x_star=x_stars[i],
             animate=True
         )
-        break

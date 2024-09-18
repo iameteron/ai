@@ -11,7 +11,7 @@ def solution_visualization(
     x_star: np.array = None,
     xlim: tuple = (-5, 5),
     ylim: tuple = (-5, 5),
-    step: float = 0.1,
+    step: float = 0.01,
     flat: bool = True,
     labels: list = [],
     cmap: str = "viridis",
@@ -56,12 +56,15 @@ def solution_visualization(
 
             def update(i):
                 for x_seq, label in zip(x_seqs, labels):
-                    lines[label].set_data(x_seq[:i, 0], x_seq[:i, 1])
-                    points[label].set_offsets((x_seq[i, 0], x_seq[i, 1]))
+                    idx = min(i, x_seq[:, 0].size - 1)
+                    lines[label].set_data(x_seq[:idx + 1, 0], x_seq[:idx + 1, 1])
+                    points[label].set_offsets((x_seq[idx, 0], x_seq[idx, 1]))
 
+            frames = max([x_seq[:, 0].size for x_seq in x_seqs])
+            print(frames)
 
             ani = animation.FuncAnimation(
-                fig=fig, func=update, frames=x_seqs[0][:, 0].size, interval=90
+                fig=fig, func=update, frames=frames, interval=90
             )
 
             plt.legend()
@@ -124,5 +127,5 @@ def compare_methods(
         cmap=cmap,
         labels=methods,
         animate=animate,
-        path=f"{function.__name__}.gif",
+        path=f"./gifs/{function.__name__}.gif",
     )
