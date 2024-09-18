@@ -147,7 +147,7 @@ class GradientOptimizer:
         best_beta_1 = betas_1[0]
         best_beta_2 = betas_2[0]
 
-        for alpha in tqdm(alphas):
+        for alpha in alphas:
             for beta_1 in betas_1:
                 for beta_2 in betas_2:
                     self.alpha = alpha

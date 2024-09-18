@@ -106,6 +106,8 @@ def compare_methods(
     x_seqs = []
     y_seqs = []
 
+    print(f'{function.__name__}: \n')
+
     for method in methods:
         optimizer = GradientOptimizer(function, initial_point, grad_function, method)
         optimizer.hyperparameter_optimization()
@@ -117,6 +119,8 @@ def compare_methods(
         print(
             f"{method}: steps = {x_seq.shape[0] - 1}, value = {y_seq[-1]}, lr = {optimizer.alpha}, beta_1 = {optimizer.beta_1}, beta_2 = {optimizer.beta_2}"
         )
+
+    print('')
 
     solution_visualization(
         function,
