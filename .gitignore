@@ -1,3 +1,7 @@
 *__pycache__
 /env
 /cp/data
+
+*dataset
+*cats-dogs-datset.zip
+*dataset_split
